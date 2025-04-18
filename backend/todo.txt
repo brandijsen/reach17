@@ -1,0 +1,3 @@
+aggiungere count anche su tipologie, atenei e ass corso-ateneo
+creare file appositi per corsi con atenei
+crea file reach17_collection.json nel quale includere tutte le chiamate appositi
