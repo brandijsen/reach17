@@ -9,3 +9,5 @@ yarn-error.log*
 
 # system
 .DS_Store
+
+todo.txt
