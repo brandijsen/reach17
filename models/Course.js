@@ -11,6 +11,11 @@ const Course = {
     return rows.length > 0;
   },
 
+async getTypeNameById(typeId) {
+  const [rows] = await db.execute('SELECT name FROM course_types WHERE id = ?', [typeId]);
+  return rows[0]?.name || null;
+},
+
   async create(name, typeId) {
     const [result] = await db.execute(
       'INSERT INTO courses (name, type_id) VALUES (?, ?)',
@@ -41,8 +46,6 @@ async findAll(filter = {}) {
   type = type?.trim().toLowerCase();
   university = university?.trim().toLowerCase();
 
-  // Log di debug
-  console.log('Filtro ricevuto:', { name, type, university });
 
   const courseParams = [];
   let courseQuery = `
@@ -94,15 +97,33 @@ async findAll(filter = {}) {
     map[row.course_id].push(uni);
   }
 
-  // Output finale
-  return courses.map(course => ({
+return courses
+  .filter(course => {
+    // Se non c'è filtro per università, mostra tutto
+    if (!university) return true;
+
+    // Se c'è filtro, mostra solo se il corso è associato ad almeno una università che ha superato il filtro
+    const uniList = map[course.course_id];
+    return Array.isArray(uniList) && uniList.length > 0;
+  })
+  .map(course => ({
     id: course.course_id,
     course_name: course.course_name,
     type_name: course.type_name,
     universities: map[course.course_id] || []
   }));
-}
+},
 
+async getById(id) {
+  const [rows] = await db.execute(`
+    SELECT c.id, c.name, ct.name AS type
+    FROM courses c
+    JOIN course_types ct ON c.type_id = ct.id
+    WHERE c.id = ?
+  `, [id]);
+
+  return rows[0] || null;
+}
 
 
 

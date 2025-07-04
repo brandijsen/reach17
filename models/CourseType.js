@@ -6,10 +6,18 @@ const CourseType = {
     return rows;
   },
     
+async getById(id) {
+  const [rows] = await db.execute('SELECT id, name FROM course_types WHERE id = ?', [id]);
+  return rows[0] || null;
+},
+
+
   async findByName(name) {
     const [rows] = await db.execute('SELECT * FROM course_types WHERE name = ?', [name]);
     return rows[0];
   },
+
+
 
   async create(name) {
     const [result] = await db.execute('INSERT INTO course_types (name) VALUES (?)', [name]);

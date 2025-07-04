@@ -9,17 +9,30 @@ exports.getAll = async (req, res) => {
   }
 };
 
+exports.getById = async (req, res) => {
+  try {
+    const type = await CourseType.getById(req.params.id);
+    if (!type) {
+      return res.status(404).json({ error: 'Course type not found' });
+    }
+    res.status(200).json(type);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
 exports.create = async (req, res) => {
   const name = req.body.name?.trim();
 
   if (!name) {
-    return res.status(400).json({ error: 'Il nome della tipologia è obbligatorio' });
+    return res.status(400).json({ error: 'Name is required' });
   }
 
   try {
     const existing = await CourseType.findByName(name);
     if (existing) {
-      return res.status(409).json({ error: 'Tipo di corso già esistente' });
+      return res.status(409).json({ error: `The '${name}' course type already exists` });
     }
 
     const id = await CourseType.create(name);
@@ -50,8 +63,8 @@ exports.createBulk = async (req, res) => {
   if (skipped.duplicate.length > 0) {
     const last = skipped.duplicate.pop();
     const msg = skipped.duplicate.length > 0
-      ? `${skipped.duplicate.join(', ')} and ${last} already exist`
-      : `${last} already exists`;
+      ? `${skipped.duplicate.join(', ')} and ${last} course type already exist`
+      : `${last} course type already exists`;
     messages.push(msg);
     skipped.duplicate.push(last);
   }
@@ -71,20 +84,33 @@ exports.update = async (req, res) => {
   const name = req.body.name?.trim();
 
   if (!name) {
-    return res.status(400).json({ error: 'Il nome è obbligatorio' });
+    return res.status(400).json({ error: 'Name is required' });
   }
 
   try {
+    // 1. Trova la tipologia esistente con quell'ID
+    const existing = await CourseType.getById(req.params.id);
+    if (!existing) {
+      return res.status(404).json({ error: "The selected course type doesn't exist" });
+    }
+
+    // 2. Se il nome è lo stesso → restituisci messaggio dedicato
+    if (existing.name.toLowerCase() === name.toLowerCase()) {
+      return res.status(400).json({ error: 'The selected course type already has this name' });
+    }
+
+    // 3. Procedi con aggiornamento
     const updated = await CourseType.update(req.params.id, name);
-    if (!updated) {
-      return res.status(404).json({ error: 'Tipologia non trovata' });
-    }
-    res.status(200).json({ message: 'Tipologia aggiornata' });
+    res.status(200).json({ message: `The course type name has been successfully updated to '${name}'` });
+
   } catch (err) {
-if (err.code === 'ER_DUP_ENTRY') {
-      return res.status(409).json({ error: 'Il nome scelto è già assegnato ad un\'altra tipologia' });
+    if (err.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({
+        error: 'The selected name is already assigned to an already existing course type'
+      });
     }
-    res.status(500).json({ error: err.message });  }
+    res.status(500).json({ error: err.message });
+  }
 };
 
 
@@ -95,7 +121,7 @@ exports.remove = async (req, res) => {
     if (deleted === 0) {
       return res.status(404).json({ error: 'The selected id doesn\'t exist' });
     }
-    res.status(200).json({ message: 'Tipologia eliminata' });
+    res.status(200).json({ message: 'The selected course type has been eliminated' });
   } catch (err) {
     if (err.code === 'ER_ROW_IS_REFERENCED_2') {
       return res.status(409).json({ 

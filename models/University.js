@@ -6,6 +6,11 @@ const University = {
     return rows;
   },
 
+  async getById(id) {
+  const [rows] = await db.execute('SELECT id, name FROM universities WHERE id = ?', [id]);
+  return rows[0] || null;
+},
+
   async findByName(name) {
     const [rows] = await db.execute('SELECT * FROM universities WHERE name = ?', [name]);
     return rows[0];

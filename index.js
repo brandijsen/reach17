@@ -14,7 +14,7 @@ const courseUniversityRoutes = require('./routes/courseUniversityRoutes');
 app.use('/api/types', typesRoutes);
 app.use('/api/universities', universitiesRoutes);
 app.use('/api/courses', coursesRoutes);
-app.use('/api/course-universities', courseUniversityRoutes);
+app.use('/api/course-university', courseUniversityRoutes);
 
 // Test endpoint (opzionale)
 app.get('/', (req, res) => {

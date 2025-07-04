@@ -5,6 +5,9 @@ const controller = require('../controllers/universitiesController');
 // Recupera tutte le università
 router.get('/', controller.getAll);
 
+router.get('/:id', controller.getById);
+
+
 // Crea una nuova università
 router.post('/', controller.create);
 
